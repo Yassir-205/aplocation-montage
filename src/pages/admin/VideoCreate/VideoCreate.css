@@ -1,0 +1,156 @@
+/* ============================================================
+   VIDEO CREATE / EDIT PAGE
+   ============================================================ */
+.vc-page { display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* Header */
+.vc-header {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.vc-back { font-size: 0.82rem !important; padding: 0.5rem 1rem !important; }
+.vc-header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+/* Body */
+.vc-body { display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* Section card */
+.vc-section {
+  padding: 1.75rem 2rem;
+  display: flex; flex-direction: column; gap: 1.5rem;
+}
+
+.vc-section-title {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-heading); font-size: 0.95rem;
+  font-weight: 600; color: var(--text-primary);
+}
+.vc-section-title i { color: var(--violet); }
+
+/* Form grid */
+.vc-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+.vc-field-full { grid-column: 1 / -1; }
+
+/* Fields */
+.vc-field { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.vc-field label {
+  font-size: 0.8rem; font-weight: 500;
+  color: var(--text-secondary); letter-spacing: 0.02em;
+}
+
+.vc-field input,
+.vc-field select,
+.vc-field textarea {
+  font-family: var(--font-body); font-size: 0.9rem;
+  color: var(--text-primary); width: 100%;
+  background: #fff;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem; outline: none; resize: vertical;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.vc-field select {
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237C3AED' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 1rem center;
+  background-color: #fff; padding-right: 2.5rem;
+}
+.vc-field select option { background: #fff; color: var(--text-primary); }
+.vc-field input::placeholder,
+.vc-field textarea::placeholder { color: var(--text-muted); }
+.vc-field input:focus,
+.vc-field select:focus,
+.vc-field textarea:focus {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+}
+.vc-field input.err,
+.vc-field select.err { border-color: #dc2626; }
+
+.vc-error { font-size: 0.75rem; color: #dc2626; }
+
+@keyframes vc-spin { to { transform: rotate(360deg); } }
+.vc-spin { display: inline-block; animation: vc-spin 0.8s linear infinite; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .vc-section { padding: 1.25rem; }
+  .vc-form-grid { grid-template-columns: 1fr; }
+  .vc-field-full { grid-column: auto; }
+  .vc-header-actions { width: 100%; justify-content: flex-end; }
+}
+
+@media (max-width: 480px) {
+  .vc-header-actions { flex-direction: column; }
+  .vc-header-actions .btn { width: 100%; justify-content: center; }
+}
+
+/* ── Auto-generated thumbnail preview ── */
+.vc-auto-thumb-preview {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.vc-auto-thumb-label {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.78rem; font-weight: 500;
+  color: var(--violet);
+}
+.vc-auto-thumb-img {
+  width: 100%; max-width: 320px;
+  aspect-ratio: 16/9; object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1.5px solid rgba(124,58,237,0.25);
+  box-shadow: 0 2px 12px rgba(124,58,237,0.1);
+}
+
+/* ── Publish button below quality field ── */
+.vc-publish-btn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+/* ── Save / storage error banner ── */
+.vc-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  color: #dc2626;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin-bottom: 0.25rem;
+}
+
+.vc-error-banner i:first-child {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+.vc-error-banner span {
+  flex: 1;
+}
+
+.vc-error-dismiss {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity var(--transition-fast);
+}
+.vc-error-dismiss:hover { opacity: 1; }

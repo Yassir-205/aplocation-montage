@@ -1,0 +1,44 @@
+.quality-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Sizes */
+.quality-sm { font-size: 0.65rem; padding: 0.2rem 0.65rem; }
+.quality-md { font-size: 0.75rem; padding: 0.3rem 0.85rem; }
+.quality-lg { font-size: 0.85rem; padding: 0.4rem 1.1rem;  }
+
+/* BASIC — subtle purple outline */
+.quality-basic {
+  color: var(--lavender);
+  background: rgba(196, 181, 253, 0.08);
+  border: 1px solid rgba(196, 181, 253, 0.3);
+}
+
+/* STANDARD — violet gradient */
+.quality-standard {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(91,33,182,0.6), rgba(124,58,237,0.5));
+  border: 1px solid rgba(124, 58, 237, 0.5);
+}
+
+/* PREMIUM — bright gradient + glow */
+.quality-premium {
+  color: #fff;
+  background: linear-gradient(135deg, var(--violet) 0%, var(--bright-purple) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+}
+
+.badge-star {
+  font-size: 0.7em;
+  line-height: 1;
+}

@@ -1,0 +1,74 @@
+/* ============================================================
+   DASHBOARD PAGE
+   ============================================================ */
+.dash-page { display: flex; flex-direction: column; gap: 2rem; }
+
+.dash-welcome {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.dash-welcome-title {
+  font-family: var(--font-heading);
+  font-size: 1.4rem; font-weight: 700; color: var(--text-primary);
+}
+.dash-welcome-sub { font-size: 0.875rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+.dash-section { display: flex; flex-direction: column; gap: 1rem; }
+.dash-section-header {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+.dash-section-title {
+  font-family: var(--font-heading);
+  font-size: 1rem; font-weight: 600; color: var(--text-primary);
+}
+.dash-view-all { font-size: 0.78rem !important; padding: 0.4rem 0.85rem !important; }
+
+.dash-loading {
+  display: flex; align-items: center; gap: 0.6rem;
+  color: var(--text-muted); padding: 2rem; font-size: 0.9rem;
+}
+@keyframes dash-spin { to { transform: rotate(360deg); } }
+.dash-spin { display: inline-block; animation: dash-spin 0.8s linear infinite; }
+
+/* Quick actions */
+.dqa-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.dqa-card {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.75rem; padding: 1.75rem 1rem;
+  cursor: pointer; background: none; border: none; width: 100%;
+  transition: transform var(--transition-smooth);
+  text-align: center;
+}
+.dqa-card:hover { transform: translateY(-4px); }
+
+.dqa-icon {
+  width: 52px; height: 52px; border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(168,85,247,0.06));
+  border: 1px solid var(--border-subtle);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; color: var(--violet);
+  transition: box-shadow var(--transition-smooth);
+}
+.dqa-card:hover .dqa-icon { box-shadow: 0 0 20px rgba(124,58,237,0.2); }
+.dqa-card span { font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .dqa-grid { grid-template-columns: repeat(3,1fr); gap: 0.65rem; }
+  .dqa-card { padding: 1.25rem 0.5rem; }
+  .dqa-icon { width: 44px; height: 44px; font-size: 1.2rem; }
+  .dqa-card span { font-size: 0.72rem; }
+  .dash-welcome-title { font-size: 1.15rem; }
+}
+
+@media (max-width: 400px) {
+  .dqa-grid { grid-template-columns: 1fr; }
+}

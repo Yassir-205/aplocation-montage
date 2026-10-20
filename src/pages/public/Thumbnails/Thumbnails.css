@@ -1,0 +1,180 @@
+/* ============================================================
+   PUBLIC THUMBNAILS GALLERY
+   ============================================================ */
+.tg-page {
+  min-height: 100vh;
+  padding-top: 6rem;
+}
+
+/* ── Hero ── */
+.tg-hero {
+  padding: 4rem 1.5rem 2.5rem;
+  text-align: center;
+  background: linear-gradient(160deg, var(--bg-alt) 0%, var(--bg-base) 100%);
+}
+
+.tg-hero-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.tg-hero-sub {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ── Section ── */
+.tg-section {
+  padding: 3rem 1.5rem 5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Empty state ── */
+.tg-empty {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 1rem;
+  padding: 6rem 2rem; text-align: center;
+  color: var(--text-muted);
+}
+.tg-empty i { font-size: 3rem; opacity: 0.3; }
+.tg-empty p { font-size: 0.95rem; }
+
+/* ── Grid ── */
+.tg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ── Card ── */
+.tg-card {
+  display: flex; flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  transition: transform var(--transition-spring), box-shadow var(--transition-smooth);
+  padding: 0;
+}
+.tg-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(124,58,237,0.12);
+}
+
+.tg-card-img-wrap {
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: var(--bg-alt);
+}
+.tg-card-img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.4s ease;
+}
+.tg-card:hover .tg-card-img { transform: scale(1.05); }
+
+.tg-card-overlay {
+  position: absolute; inset: 0;
+  background: rgba(124,58,237,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.75rem; color: #fff;
+  opacity: 0;
+  transition: opacity var(--transition-smooth);
+}
+.tg-card:hover .tg-card-overlay { opacity: 1; }
+
+.tg-card-info {
+  padding: 0.8rem 1rem 0.9rem;
+  display: flex; flex-direction: column; gap: 0.25rem;
+}
+.tg-card-title {
+  font-size: 0.88rem; font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tg-card-date {
+  font-size: 0.72rem; color: var(--text-muted);
+}
+
+/* ── Lightbox — portalled to document.body ── */
+.tg-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;           /* above navbar (1000), mobile overlay (999), everything */
+  background: rgba(10, 5, 20, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: tg-fade-in 0.18s ease;
+}
+@keyframes tg-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.tg-lb-inner {
+  position: relative;
+  max-width: 900px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tg-lb-close {
+  position: absolute;
+  top: -2.75rem;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  /* Ensure the button itself is always clickable */
+  z-index: 1;
+}
+.tg-lb-close:hover { background: rgba(255,255,255,0.28); }
+
+.tg-lb-img {
+  width: 100%;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+  display: block;
+}
+
+.tg-lb-caption {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.7);
+  text-align: center;
+}
+
+/* Mobile: tighter padding so image has full room */
+@media (max-width: 640px) {
+  .tg-lightbox { padding: 1rem; }
+  .tg-lb-img   { max-height: 80vh; border-radius: var(--radius-md); }
+  .tg-lb-close { top: -2.5rem; width: 36px; height: 36px; font-size: 1.1rem; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .tg-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+  .tg-hero  { padding: 3rem 1rem 2rem; }
+}

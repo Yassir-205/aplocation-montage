@@ -1,0 +1,153 @@
+/* ============================================================
+   VIDEO UPLOAD FORM
+   ============================================================ */
+/* Legacy two-column grid kept for reference but no longer used */
+.vuf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Single-column video-only layout */
+.vuf-single {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.vuf-section { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.vuf-label {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--text-secondary); letter-spacing: 0.02em;
+}
+.vuf-label i { color: var(--violet); }
+
+.vuf-label-hint {
+  margin-left: auto;
+  font-size: 0.72rem; font-weight: 500;
+  color: var(--text-muted);
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.vuf-label-hint i { color: var(--violet); font-size: 0.78rem; }
+
+/* Capture-in-progress banner */
+.vuf-capture-banner {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(124,58,237,0.07);
+  border-top: 1px solid rgba(124,58,237,0.15);
+  font-size: 0.78rem; color: var(--violet); font-weight: 500;
+}
+@keyframes vuf-spin { to { transform: rotate(360deg); } }
+.vuf-spin { display: inline-block; animation: vuf-spin 0.8s linear infinite; }
+
+/* Dropzone */
+.vuf-dropzone {
+  border: 2px dashed rgba(124,58,237,0.25);
+  border-radius: var(--radius-lg);
+  background: rgba(124,58,237,0.03);
+  padding: 2.5rem 1.5rem;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.6rem; text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+  min-height: 180px; justify-content: center;
+  position: relative;
+}
+.vuf-dropzone:hover,
+.vuf-dropzone.drag-over {
+  border-color: var(--violet);
+  background: rgba(124,58,237,0.06);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+}
+.vuf-dropzone-thumb { min-height: 140px; }
+
+.vuf-dz-icon {
+  width: 52px; height: 52px;
+  border-radius: var(--radius-lg);
+  background: rgba(124,58,237,0.08);
+  border: 1px solid rgba(124,58,237,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; color: var(--violet);
+  margin-bottom: 0.25rem;
+  transition: transform var(--transition-spring);
+}
+.vuf-dropzone:hover .vuf-dz-icon { transform: scale(1.08); }
+
+.vuf-dz-title { font-family: var(--font-heading); font-size: 0.88rem; font-weight: 600; color: var(--text-primary); }
+.vuf-dz-sub   { font-size: 0.78rem; color: var(--text-muted); }
+
+.vuf-dz-btn {
+  display: inline-block;
+  font-size: 0.78rem; font-weight: 600;
+  color: var(--violet);
+  background: rgba(124,58,237,0.08);
+  border: 1px solid rgba(124,58,237,0.22);
+  padding: 0.32rem 0.9rem;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+}
+.vuf-dropzone:hover .vuf-dz-btn { background: rgba(124,58,237,0.15); }
+
+.vuf-dz-hint { font-size: 0.7rem; color: var(--text-muted); }
+
+.vuf-hidden-input {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer;
+}
+
+/* Preview card */
+.vuf-preview-card {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border-subtle);
+  background: #fff;
+}
+
+.vuf-video-preview,
+.vuf-thumb-preview {
+  width: 100%; aspect-ratio: 16/9;
+  object-fit: cover; display: block;
+}
+
+.vuf-file-info {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.vuf-file-icon {
+  width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: rgba(124,58,237,0.08);
+  border: 1px solid rgba(124,58,237,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; color: var(--violet);
+}
+
+.vuf-file-meta { flex: 1; min-width: 0; }
+.vuf-file-name {
+  font-size: 0.82rem; font-weight: 500; color: var(--text-primary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vuf-file-size { font-size: 0.7rem; color: var(--text-muted); }
+
+.vuf-remove-btn {
+  width: 28px; height: 28px; flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(220,38,38,0.07);
+  border: 1px solid rgba(220,38,38,0.2);
+  color: #dc2626; font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all var(--transition-fast);
+}
+.vuf-remove-btn:hover { background: #dc2626; color: #fff; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .vuf-grid { grid-template-columns: 1fr; }
+  .vuf-dropzone { min-height: 140px; padding: 1.75rem 1rem; }
+}

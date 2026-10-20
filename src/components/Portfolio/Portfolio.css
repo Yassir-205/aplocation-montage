@@ -1,0 +1,195 @@
+/* ============================================================
+   PORTFOLIO SECTION
+   ============================================================ */
+.portfolio-section {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(50, 16, 111, 0.08) 50%,
+    transparent 100%
+  );
+}
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+/* ── Project card ── */
+.project-card {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+  position: relative;
+}
+
+.project-card:hover {
+  transform: translateY(-6px);
+}
+
+.project-card.featured {
+  border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: var(--shadow-card), 0 0 30px rgba(168, 85, 247, 0.2);
+}
+
+.project-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 5;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--violet), var(--bright-purple));
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 12px rgba(168, 85, 247, 0.5);
+}
+
+/* Visual area */
+.project-visual {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(50, 16, 111, 0.5), rgba(22, 5, 47, 0.8));
+  flex-shrink: 0;
+}
+
+.project-img-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: rgba(139, 92, 246, 0.4);
+  background: linear-gradient(
+    145deg,
+    rgba(91, 33, 182, 0.15) 0%,
+    rgba(50, 16, 111, 0.3) 100%
+  );
+  transition: color var(--transition-smooth);
+}
+
+.project-card:hover .project-img-placeholder {
+  color: rgba(168, 85, 247, 0.6);
+}
+
+/* Real project image */
+.project-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-smooth);
+}
+
+.project-card:hover .project-img {
+  transform: scale(1.05);
+}
+
+/* Overlay */
+.project-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 1, 24, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  opacity: 0;
+  transition: opacity var(--transition-smooth);
+}
+
+.project-card:hover .project-overlay {
+  opacity: 1;
+}
+
+.project-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: rgba(124, 58, 237, 0.3);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  color: var(--white);
+  font-size: 1.1rem;
+  transition: all var(--transition-fast);
+}
+
+.project-link:hover {
+  background: var(--violet);
+  transform: scale(1.1);
+}
+
+/* Info area */
+.project-info {
+  padding: 1.25rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  flex: 1;
+}
+
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.project-tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--electric);
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+}
+
+.project-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1.3;
+}
+
+.project-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+/* CTA */
+.portfolio-cta {
+  text-align: center;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .portfolio-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-visual {
+    height: 160px;
+  }
+}

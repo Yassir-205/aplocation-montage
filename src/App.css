@@ -1,38 +1,56 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+/* ============================================================
+   APP ROOT — Purple & White
+   ============================================================ */
+.app {
+  position: relative;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  background: var(--bg-base);          /* #F8F5FF — soft lavender-white     */
+  overflow-x: hidden;
 }
 
-.App-link {
-  color: #61dafb;
+/* Ambient purple radial blobs — very subtle on white */
+.app::before {
+  content: '';
+  position: fixed;
+  top: -15%;
+  right: -8%;
+  width: 55vw;
+  height: 55vw;
+  background: radial-gradient(ellipse, rgba(124,58,237,0.09) 0%, transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: blobPulse 11s ease-in-out infinite alternate;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.app::after {
+  content: '';
+  position: fixed;
+  bottom: -15%;
+  left: -8%;
+  width: 48vw;
+  height: 48vw;
+  background: radial-gradient(ellipse, rgba(168,85,247,0.07) 0%, transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: blobPulse 14s ease-in-out infinite alternate-reverse;
+}
+
+.app-blob-center {
+  position: fixed;
+  top: 38%;
+  left: 28%;
+  width: 38vw;
+  height: 38vw;
+  background: radial-gradient(ellipse, rgba(139,92,246,0.05) 0%, transparent 65%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: blobPulse 17s ease-in-out infinite alternate;
+}
+
+main {
+  position: relative;
+  z-index: 1;
 }

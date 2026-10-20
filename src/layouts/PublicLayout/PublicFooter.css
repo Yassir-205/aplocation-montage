@@ -1,0 +1,126 @@
+.pub-footer {
+  border-top: 1px solid var(--border-subtle);
+  background: #fff;
+  padding: 4rem 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.pf-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+.pf-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  margin-bottom: 1rem;
+}
+.pf-brand-icon {
+  font-size: 1rem;
+  background: linear-gradient(135deg, var(--violet), var(--bright-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.pf-accent { color: var(--bright-purple); -webkit-text-fill-color: var(--bright-purple); }
+
+.pf-tagline { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.25rem; }
+
+.pf-socials { display: flex; gap: 0.6rem; }
+
+.pf-col-title {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--violet);
+  margin-bottom: 1.25rem;
+}
+
+.pf-col-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.pf-col-links li a,
+.pf-col-links li span {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+.pf-col-links li a:hover { color: var(--violet); }
+
+.pf-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-subtle);
+  gap: 1rem;
+}
+.pf-bottom p { font-size: 0.8rem; color: var(--text-muted); }
+
+.pf-top-btn {
+  width: 38px; height: 38px;
+  border-radius: var(--radius-full);
+  background: rgba(124,58,237,0.08);
+  border: 1.5px solid var(--border-subtle);
+  color: var(--violet);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  transition: all var(--transition-smooth);
+}
+.pf-top-btn:hover {
+  background: var(--violet);
+  color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+}
+
+@media (max-width: 900px) { .pf-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) {
+  .pf-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .pf-bottom { flex-direction: column; text-align: center; }
+}
+
+/* WhatsApp CTA in footer */
+.pf-whatsapp-sub {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.pf-wa-btn {
+  display: inline-flex !important;
+  padding: 0.6rem 1.25rem !important;
+  font-size: 0.82rem !important;
+}
+
+/* ── Clickable phone & email in footer ── */
+.pf-contact-links li { display: flex; align-items: flex-start; }
+
+.pf-phone-link,
+.pf-email-link {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+.pf-phone-link:hover { color: var(--violet); }
+.pf-email-link:hover { color: var(--violet); }
+
+.pf-phone-link i,
+.pf-email-link i { color: var(--violet); font-size: 0.82rem; flex-shrink: 0; }

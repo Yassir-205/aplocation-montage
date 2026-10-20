@@ -1,0 +1,137 @@
+/* ============================================================
+   ADMIN LAYOUT
+   ============================================================ */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-base);
+  position: relative;
+}
+
+/* Mobile backdrop */
+.admin-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(22,5,47,0.45);
+  backdrop-filter: blur(3px);
+  z-index: 299;
+}
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+/* ── Top bar ── */
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 64px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+  gap: 1rem;
+}
+
+.admin-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* Mobile hamburger — hidden on desktop */
+.admin-mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: rgba(124,58,237,0.08);
+  border: 1px solid var(--border-subtle);
+  color: var(--violet);
+  font-size: 1.1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+.admin-mobile-menu-btn:hover { background: rgba(124,58,237,0.15); }
+
+.admin-page-icon {
+  font-size: 1.15rem;
+  color: var(--violet);
+  flex-shrink: 0;
+}
+
+.admin-page-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* User badge */
+.admin-user-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.4rem 0.85rem 0.4rem 0.5rem;
+  background: rgba(124,58,237,0.07);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.admin-user-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet), var(--bright-purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; color: #fff;
+  flex-shrink: 0;
+}
+
+.admin-user-name { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); display: block; line-height: 1.2; }
+.admin-user-role { font-size: 0.68rem; color: var(--text-muted); display: block; }
+
+/* ── Content ── */
+.admin-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  .admin-content { padding: 1.5rem; }
+}
+
+@media (max-width: 768px) {
+  .admin-mobile-menu-btn { display: flex; }
+  .admin-backdrop        { display: block; }
+  .admin-topbar          { padding: 0 1rem; }
+  .admin-content         { padding: 1.25rem 1rem; }
+  .admin-user-info       { display: none; }
+}
+
+@media (max-width: 480px) {
+  .admin-topbar   { height: 56px; }
+  .admin-content  { padding: 1rem 0.75rem; }
+  .admin-page-title { font-size: 0.95rem; }
+}
