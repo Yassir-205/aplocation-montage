@@ -5,6 +5,40 @@ const VIDEO_BUCKET = 'videos';
 const THUMB_BUCKET = 'thumbnails';
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 
+function getYouTubeThumbnail(videoUrl) {
+  if (!videoUrl) return null;
+
+  try {
+    const url = new URL(videoUrl);
+    const host = url.hostname.toLowerCase();
+    let videoId = null;
+
+    if (host === 'youtu.be') {
+      videoId = url.pathname.split('/')[1];
+    } else if (
+      ['youtube.com', 'www.youtube.com', 'm.youtube.com'].includes(host)
+    ) {
+      if (url.pathname === '/watch') {
+        videoId = url.searchParams.get('v');
+      } else if (
+        url.pathname.startsWith('/shorts/') ||
+        url.pathname.startsWith('/embed/') ||
+        url.pathname.startsWith('/live/')
+      ) {
+        videoId = url.pathname.split('/')[2];
+      }
+    }
+
+    if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+      return null;
+    }
+
+    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  } catch {
+    return null;
+  }
+}
+
 function formatVideo(row) {
   return {
     id: row.id,
@@ -17,7 +51,13 @@ function formatVideo(row) {
     externalUrl: row.external_url || '',
     videoUrl: row.video_url || '',
     videoPath: row.video_path,
-    thumbnail: row.thumbnail_url || null,
+
+thumbnail:
+  row.thumbnail_url ||
+  (row.source_type === 'youtube'
+    ? getYouTubeThumbnail(row.external_url)
+    : null),
+
     thumbnailPath: row.thumbnail_path,
     duration: row.duration || '',
     featured: row.featured || false,
