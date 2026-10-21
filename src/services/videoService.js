@@ -1,210 +1,366 @@
-import { videoFileDB } from './db';
 
-const KEY = 'neditiw_videos';
+import { supabase } from '../lib/supabase';
 
-// Cache of blob URLs created this session (to avoid recreating them)
-const _blobUrlCache = new Map();
+const VIDEO_BUCKET = 'videos';
+const THUMB_BUCKET = 'thumbnails';
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 
-// ── Storage helpers ───────────────────────────────────────
-
-function readFromStorage() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch (_) {
-    return [];
-  }
+function formatVideo(row) {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description || '',
+    category: row.category || 'Commercial',
+    quality: row.quality || 'STANDARD',
+    status: row.status,
+    sourceType: row.source_type || 'upload',
+    externalUrl: row.external_url || '',
+    videoUrl: row.video_url || '',
+    videoPath: row.video_path,
+    thumbnail: row.thumbnail_url || null,
+    thumbnailPath: row.thumbnail_path,
+    duration: row.duration || '',
+    featured: row.featured || false,
+    views: row.views || 0,
+    createdAt: row.created_at?.split('T')[0] || '',
+  };
 }
 
-/**
- * Save video metadata to localStorage (without blob URLs).
- * Actual video files are stored in IndexedDB separately.
- */
-function writeToStorage(videos) {
+function validateExternalUrl(type, value) {
+  let url;
+
   try {
-    // Only save metadata, never blob URLs
-    const safe = videos.map(v => ({
-      ...v,
-      videoUrl: v.videoUrl && v.videoUrl.startsWith('blob:') ? null : v.videoUrl,
-    }));
-    localStorage.setItem(KEY, JSON.stringify(safe));
-    return null;
-  } catch (err) {
-    if (
-      err instanceof DOMException &&
-      (err.code === 22 ||
-        err.code === 1014 ||
-        err.name === 'QuotaExceededError' ||
-        err.name === 'NS_ERROR_DOM_QUOTA_REACHED')
-    ) {
-      return 'Storage quota exceeded. Try clearing some data.';
-    }
-    return `Storage error: ${err.message}`;
+    url = new URL(value);
+  } catch {
+    throw new Error('Please enter a valid video URL.');
   }
+
+  const host = url.hostname.toLowerCase();
+
+  if (url.protocol !== 'https:') {
+    throw new Error('Video URL must use HTTPS.');
+  }
+
+  if (type === 'youtube' &&
+      !['youtube.com', 'www.youtube.com',
+        'm.youtube.com', 'youtu.be'].includes(host)) {
+    throw new Error('Please enter a YouTube URL.');
+  }
+
+  if (type === 'instagram' &&
+      !['instagram.com', 'www.instagram.com'].includes(host)) {
+    throw new Error('Please enter an Instagram URL.');
+  }
+
+  return url.href;
 }
 
-// ── In-memory store (source of truth during the session) ──
-let _videos = readFromStorage();
+async function uploadThumbnail(dataUri) {
+  if (!dataUri) return null;
 
-/**
- * Load a video's blob URL from IndexedDB if it was stored there.
- * Creates a new blob: URL from the stored File/Blob.
- */
-async function loadVideoUrl(video) {
-  // If there's already a valid external URL, use it
-  if (video.videoUrl && !video.videoUrl.startsWith('blob:')) {
-    return video.videoUrl;
+  const response = await fetch(dataUri);
+  const blob = await response.blob();
+
+
+const formats = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+const extension = formats[blob.type];
+
+if (!extension) {
+  throw new Error('Unsupported thumbnail format.');
+}
+
+if (blob.size > 10 * 1024 * 1024) {
+  throw new Error('Thumbnail must be smaller than 10 MB.');
+}
+
+const path = `${crypto.randomUUID()}.${extension}`;
+
+
+  const { error } = await supabase.storage
+    .from(THUMB_BUCKET)
+    .upload(path, blob, {
+     contentType: blob.type,
+      upsert: false,
+    });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage
+    .from(THUMB_BUCKET)
+    .getPublicUrl(path);
+
+  return { path, url: data.publicUrl };
+}
+
+async function uploadVideo(file) {
+  if (!file) {
+    throw new Error('Please select a video.');
   }
 
-  // Check cache first
-  if (_blobUrlCache.has(video.id)) {
-    return _blobUrlCache.get(video.id);
+  if (file.type !== 'video/mp4') {
+    throw new Error('Only MP4 files are supported.');
   }
 
-  // Try to load from IndexedDB
-  try {
-    const file = await videoFileDB.getFile(video.id);
-    if (file) {
-      const blobUrl = URL.createObjectURL(file);
-      _blobUrlCache.set(video.id, blobUrl);
-      return blobUrl;
-    }
-  } catch (err) {
-    console.error('Failed to load video from IndexedDB:', err);
+  if (file.size > MAX_VIDEO_SIZE) {
+    throw new Error('Video must be 50 MB or smaller.');
   }
 
-  return null;
+  const path = `${crypto.randomUUID()}.mp4`;
+
+  const { error } = await supabase.storage
+    .from(VIDEO_BUCKET)
+    .upload(path, file, {
+      contentType: 'video/mp4',
+      upsert: false,
+    });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage
+    .from(VIDEO_BUCKET)
+    .getPublicUrl(path);
+
+  return { path, url: data.publicUrl };
+}
+
+async function removeFiles(video) {
+  if (video.videoPath) {
+    const { error } = await supabase.storage
+      .from(VIDEO_BUCKET)
+      .remove([video.videoPath]);
+    if (error) console.error('Video cleanup:', error);
+  }
+
+  if (video.thumbnailPath) {
+    const { error } = await supabase.storage
+      .from(THUMB_BUCKET)
+      .remove([video.thumbnailPath]);
+    if (error) console.error('Thumbnail cleanup:', error);
+  }
 }
 
 export const videoService = {
-
   async getAll() {
-    // Load blob URLs from IndexedDB for all videos
-    const videosWithUrls = await Promise.all(
-      _videos.map(async (v) => ({
-        ...v,
-        videoUrl: await loadVideoUrl(v)
-      }))
-    );
-    return videosWithUrls;
+    const { data, error } = await supabase
+      .from('videos')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(formatVideo);
   },
 
   async getPublished() {
-    const all = await this.getAll();
-    return all.filter(v => v.status === 'published');
+    const { data, error } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('status', 'published')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(formatVideo);
   },
 
-  getById(id) {
-    return _videos.find(v => v.id === id) || null;
+  async getById(id) {
+    const { data, error } = await supabase
+      .from('videos')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data ? formatVideo(data) : null;
   },
 
-  async create(data) {
-    const newVideo = {
-      ...data,
-      id:        String(Date.now()),
-      createdAt: new Date().toISOString().split('T')[0],
-      views:     data.views ?? 0,
-    };
+  async create(input) {
+    let uploadedVideo = null;
+    let uploadedThumb = null;
 
-    // If there's a video file, store it in IndexedDB
-    if (data.videoFile) {
-      try {
-        await videoFileDB.saveFile(newVideo.id, data.videoFile);
-        // Create blob URL for immediate playback
-        const blobUrl = URL.createObjectURL(data.videoFile);
-        _blobUrlCache.set(newVideo.id, blobUrl);
-        newVideo.videoUrl = blobUrl;
-      } catch (err) {
-        console.error('Failed to save video file:', err);
-        return { video: null, storageError: 'Failed to save video file. Your browser may not support large file storage.' };
+    try {
+      const type = input.sourceType || 'upload';
+
+      let externalUrl = null;
+
+      if (type !== 'upload') {
+        externalUrl = validateExternalUrl(
+          type,
+          input.externalUrl
+        );
+      } else if (!input.videoFile) {
+        throw new Error('Please select an MP4 file.');
       }
-    }
 
-    _videos = [newVideo, ..._videos];
-    const storageError = writeToStorage(_videos);
-    if (storageError) {
-      // Clean up
-      _videos = _videos.filter(v => v.id !== newVideo.id);
-      if (data.videoFile) {
-        await videoFileDB.deleteFile(newVideo.id);
-        if (_blobUrlCache.has(newVideo.id)) {
-          URL.revokeObjectURL(_blobUrlCache.get(newVideo.id));
-          _blobUrlCache.delete(newVideo.id);
+      if (type === 'upload') {
+        uploadedVideo = await uploadVideo(input.videoFile);
+      }
+
+      if (input.thumbnail?.startsWith('data:image/')) {
+        uploadedThumb = await uploadThumbnail(input.thumbnail);
+      }
+
+      const payload = {
+        title: input.title.trim(),
+        description: input.description || '',
+        category: input.category || 'Commercial',
+        quality: input.quality || 'STANDARD',
+        status: input.status || 'draft',
+        source_type: type,
+        external_url: externalUrl,
+        video_url: uploadedVideo?.url || null,
+        video_path: uploadedVideo?.path || null,
+        thumbnail_url: uploadedThumb?.url || null,
+        thumbnail_path: uploadedThumb?.path || null,
+        duration: input.duration || '',
+        featured: input.featured || false,
+        views: 0,
+      };
+
+      const { data, error } = await supabase
+        .from('videos')
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return {
+        video: formatVideo(data),
+        storageError: null,
+      };
+    } catch (error) {
+      await removeFiles({
+        videoPath: uploadedVideo?.path,
+        thumbnailPath: uploadedThumb?.path,
+      });
+
+      return {
+        video: null,
+        storageError: error.message,
+      };
+    }
+  },
+
+  async update(id, input) {
+    try {
+      const old = await this.getById(id);
+      if (!old) throw new Error('Video not found.');
+
+      const payload = {};
+
+      const fields = [
+        'title', 'description', 'category',
+        'quality', 'status', 'duration',
+        'featured', 'views'
+      ];
+
+      fields.forEach(key => {
+        if (input[key] !== undefined) {
+          payload[key] = input[key];
         }
+      });
+
+      if (input.externalUrl !== undefined &&
+          old.sourceType !== 'upload') {
+        payload.external_url = validateExternalUrl(
+          old.sourceType,
+          input.externalUrl
+        );
       }
-      return { video: null, storageError };
-    }
-    return { video: newVideo, storageError: null };
-  },
 
-  async update(id, data) {
-    const prev = _videos;
-    _videos = _videos.map(v => v.id === id ? { ...v, ...data } : v);
+      let newVideo = null;
+      let newThumb = null;
 
-    // If there's a new video file, store it in IndexedDB
-    if (data.videoFile) {
       try {
-        await videoFileDB.saveFile(id, data.videoFile);
-        // Create blob URL for immediate playback
-        const blobUrl = URL.createObjectURL(data.videoFile);
-        if (_blobUrlCache.has(id)) {
-          URL.revokeObjectURL(_blobUrlCache.get(id));
+        if (input.videoFile) {
+          newVideo = await uploadVideo(input.videoFile);
+          payload.video_url = newVideo.url;
+          payload.video_path = newVideo.path;
         }
-        _blobUrlCache.set(id, blobUrl);
-        // Update the video URL in memory
-        _videos = _videos.map(v => v.id === id ? { ...v, videoUrl: blobUrl } : v);
-      } catch (err) {
-        console.error('Failed to save video file:', err);
-        _videos = prev;
-        return { video: null, storageError: 'Failed to save video file.' };
-      }
-    }
 
-    const storageError = writeToStorage(_videos);
-    if (storageError) {
-      _videos = prev;
-      return { video: null, storageError };
+        if (input.thumbnail?.startsWith('data:image/')) {
+          newThumb = await uploadThumbnail(input.thumbnail);
+          payload.thumbnail_url = newThumb.url;
+          payload.thumbnail_path = newThumb.path;
+        }
+
+        const { data, error } = await supabase
+          .from('videos')
+          .update(payload)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        await removeFiles({
+          videoPath: newVideo ? old.videoPath : null,
+          thumbnailPath: newThumb ? old.thumbnailPath : null,
+        });
+
+        return {
+          video: formatVideo(data),
+          storageError: null,
+        };
+      } catch (error) {
+        await removeFiles({
+          videoPath: newVideo?.path,
+          thumbnailPath: newThumb?.path,
+        });
+        throw error;
+      }
+    } catch (error) {
+      return { video: null, storageError: error.message };
     }
-    return { video: _videos.find(v => v.id === id), storageError: null };
   },
 
   async delete(id) {
-    _videos = _videos.filter(v => v.id !== id);
-    writeToStorage(_videos);
+    const old = await this.getById(id);
+    if (!old) return true;
 
-    // Clean up IndexedDB and blob URL cache
-    try {
-      await videoFileDB.deleteFile(id);
-    } catch (err) {
-      console.error('Failed to delete video file:', err);
-    }
+    const { error } = await supabase
+      .from('videos')
+      .delete()
+      .eq('id', id);
 
-    if (_blobUrlCache.has(id)) {
-      URL.revokeObjectURL(_blobUrlCache.get(id));
-      _blobUrlCache.delete(id);
-    }
+    if (error) throw error;
 
+    await removeFiles(old);
     return true;
   },
 
-  toggleStatus(id) {
-    _videos = _videos.map(v =>
-      v.id === id
-        ? { ...v, status: v.status === 'published' ? 'draft' : 'published' }
-        : v
-    );
-    writeToStorage(_videos);
-    return _videos.find(v => v.id === id);
+  async toggleStatus(id) {
+    const old = await this.getById(id);
+    if (!old) throw new Error('Video not found.');
+
+    const status =
+      old.status === 'published' ? 'draft' : 'published';
+
+    const { data, error } = await supabase
+      .from('videos')
+      .update({ status })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return formatVideo(data);
   },
 
-  getStats() {
+  async getStats() {
+    const videos = await this.getAll();
+
     return {
-      total:     _videos.length,
-      published: _videos.filter(v => v.status === 'published').length,
-      draft:     _videos.filter(v => v.status === 'draft').length,
-      premium:   _videos.filter(v => v.quality === 'PREMIUM').length,
-      standard:  _videos.filter(v => v.quality === 'STANDARD').length,
-      basic:     _videos.filter(v => v.quality === 'BASIC').length,
+      total: videos.length,
+      published: videos.filter(v => v.status === 'published').length,
+      draft: videos.filter(v => v.status === 'draft').length,
+      premium: videos.filter(v => v.quality === 'PREMIUM').length,
+      standard: videos.filter(v => v.quality === 'STANDARD').length,
+      basic: videos.filter(v => v.quality === 'BASIC').length,
     };
   },
 };

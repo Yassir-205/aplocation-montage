@@ -16,7 +16,7 @@ export default function VideosList() {
 
   /* Always re-fetch from service when this page mounts */
   useEffect(() => {
-    loadVideos();
+    loadVideos().catch(console.error);
   }, [loadVideos]);
 
   const filtered = useMemo(() => {

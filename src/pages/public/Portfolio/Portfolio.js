@@ -9,8 +9,8 @@ const QUALITIES = ['ALL', 'BASIC', 'STANDARD', 'PREMIUM'];
 
 export default function Portfolio() {
   const { videos, loading } = useVideos();
-  const [quality,   setQuality]   = useState('ALL');
-  const [scrolled,  setScrolled]  = useState(false);
+  const [quality, setQuality] = useState('ALL');
+  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null); // For modal
   const triggerRef = useRef(null);
@@ -143,9 +143,9 @@ export default function Portfolio() {
               <p className="port-count">{filtered.length} project{filtered.length !== 1 ? 's' : ''}</p>
               <div className="port-grid">
                 {filtered.map((v, i) => (
-                  <VideoCard 
-                    key={v.id} 
-                    video={v} 
+                  <VideoCard
+                    key={v.id}
+                    video={v}
                     style={{ animationDelay: `${i * 0.06}s` }}
                     onVideoClick={setSelectedVideo}
                   />
@@ -160,8 +160,8 @@ export default function Portfolio() {
       {selectedVideo && (
         <div className="port-modal-backdrop" onClick={() => setSelectedVideo(null)}>
           <div className="port-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button 
-              className="port-modal-close" 
+            <button
+              className="port-modal-close"
               onClick={() => setSelectedVideo(null)}
               aria-label="Close"
             >
@@ -169,11 +169,17 @@ export default function Portfolio() {
             </button>
 
             <div className="port-modal-video">
-              <VideoPlayer 
-                src={selectedVideo.videoUrl} 
-                poster={selectedVideo.thumbnail} 
-                title={selectedVideo.title} 
+              <VideoPlayer
+                src={
+                  selectedVideo.sourceType === 'upload'
+                    ? selectedVideo.videoUrl
+                    : selectedVideo.externalUrl
+                }
+                poster={selectedVideo.thumbnail}
+                title={selectedVideo.title}
+                sourceType={selectedVideo.sourceType || 'upload'}
               />
+
             </div>
 
             <div className="port-modal-details">

@@ -13,13 +13,23 @@ export default function VideoTable({ videos }) {
   const [previewVideo, setPreviewVideo] = useState(null);
   const [deleting,     setDeleting]     = useState(false);
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleting(true);
+  const [changingStatus, setChangingStatus] = useState(null);
+const confirmDelete = async () => {
+  if (!deleteTarget || deleting) return;
+
+  setDeleting(true);
+
+  try {
     await deleteVideo(deleteTarget.id);
-    setDeleting(false);
     setDeleteTarget(null);
-  };
+  } catch (error) {
+    console.error('Delete failed:', error);
+    alert('Delete failed: ' + error.message);
+  } finally {
+    setDeleting(false);
+  }
+};
+
 
   if (!videos || videos.length === 0) {
     return (
@@ -32,6 +42,23 @@ export default function VideoTable({ videos }) {
       </div>
     );
   }
+
+
+
+const handleToggleStatus = async (id) => {
+  if (changingStatus) return;
+
+  setChangingStatus(id);
+
+  try {
+    await toggleStatus(id);
+  } catch (error) {
+    console.error('Status update failed:', error);
+    alert('Failed to change status: ' + error.message);
+  } finally {
+    setChangingStatus(null);
+  }
+};
 
   return (
     <>
@@ -80,7 +107,8 @@ export default function VideoTable({ videos }) {
                 <td data-label="Status">
                   <button
                     className={`vt-status-btn${v.status === 'published' ? ' published' : ' draft'}`}
-                    onClick={() => toggleStatus(v.id)}
+                    onClick={() => handleToggleStatus(v.id)}
+disabled={changingStatus !== null}
                     title="Click to toggle"
                   >
                     <span className="vt-status-dot" />
@@ -134,7 +162,18 @@ export default function VideoTable({ videos }) {
       <Modal isOpen={!!previewVideo} onClose={() => setPreviewVideo(null)}
         title={previewVideo?.title} size="lg">
         {previewVideo && (
-          <VideoPlayer src={previewVideo.videoUrl} poster={previewVideo.thumbnail} title={previewVideo.title} />
+
+<VideoPlayer
+  src={
+    previewVideo.sourceType === 'upload'
+      ? previewVideo.videoUrl
+      : previewVideo.externalUrl
+  }
+  poster={previewVideo.thumbnail}
+  title={previewVideo.title}
+  sourceType={previewVideo.sourceType || 'upload'}
+/>
+
         )}
       </Modal>
     </>

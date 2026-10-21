@@ -13,6 +13,8 @@ import VideoDetail  from './pages/public/VideoDetail/VideoDetail';
 import Services     from './pages/public/Services/Services';
 
 // Admin pages
+import AdminLogin from './pages/admin/AdminLogin/AdminLogin';
+import ProtectedAdmin from './components/auth/ProtectedAdmin';
 import Dashboard         from './pages/admin/Dashboard/Dashboard';
 import VideosList        from './pages/admin/VideosList/VideosList';
 import VideoCreate       from './pages/admin/VideoCreate/VideoCreate';
@@ -39,14 +41,21 @@ export default function App() {
         <Route path="/about" element={<Navigate to="/" replace />} />
       </Route>
 
-      {/* ── Admin ── */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index                   element={<Dashboard />} />
-        <Route path="videos"           element={<VideosList />} />
-        <Route path="videos/create"    element={<VideoCreate />} />
-        <Route path="videos/:id/edit"  element={<VideoEdit />} />
-        <Route path="thumbnails"       element={<ThumbnailsManager />} />
-      </Route>
+
+{/* Admin Login */}
+<Route path="/admin/login" element={<AdminLogin />} />
+
+{/* Protected Admin */}
+<Route element={<ProtectedAdmin />}>
+  <Route path="/admin" element={<AdminLayout />}>
+    <Route index element={<Dashboard />} />
+    <Route path="videos" element={<VideosList />} />
+    <Route path="videos/create" element={<VideoCreate />} />
+    <Route path="videos/:id/edit" element={<VideoEdit />} />
+    <Route path="thumbnails" element={<ThumbnailsManager />} />
+  </Route>
+</Route>
+
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

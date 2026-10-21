@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useVideos } from '../../../context/VideoContext';
@@ -6,82 +7,115 @@ import VideoPlayer from '../../../components/shared/VideoPlayer/VideoPlayer';
 import '../VideoCreate/VideoCreate.css';
 import './VideoEdit.css';
 
-/**
- * Convert a File object to a base64 data URI so it survives localStorage.
- */
-function fileToDataUri(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = (e) => resolve(e.target.result);
-    reader.onerror = ()  => reject(new Error('Failed to read video file.'));
-    reader.readAsDataURL(file);
-  });
-}
-
 export default function VideoEdit() {
-  const { id }   = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { videos, updateVideo } = useVideos();
+  const { videos, loading, updateVideo, loadVideos } = useVideos();
 
-  const [form,       setForm]       = useState(null);
-  const [videoFile,  setVideoFile]  = useState(null);
-  const [autoThumb,  setAutoThumb]  = useState(null); // data URI from newly selected video
-  const [saving,     setSaving]     = useState(false);
-  const [converting, setConverting] = useState(false);
-  const [errors,     setErrors]     = useState({});
-  const [saveError,  setSaveError]  = useState(null);
-  const [notFound,   setNotFound]   = useState(false);
+  const [form, setForm] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
+  const [autoThumb, setAutoThumb] = useState(null);
+  const [sourceType, setSourceType] = useState('upload');
+  const [externalUrl, setExternalUrl] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [saveError, setSaveError] = useState(null);
 
-  /* Load existing video into form */
+  const video = videos.find(v => v.id === id);
+
   useEffect(() => {
-    const video = videos.find(v => v.id === id);
     if (video) {
       setForm({
-        title:       video.title       || '',
+        title: video.title || '',
         description: video.description || '',
-        quality:     video.quality     || 'STANDARD',
-        category:    video.category    || '',
-        duration:    video.duration    || '',
-        status:      video.status      || 'draft',
-        videoUrl:    video.videoUrl    || '',
-        thumbnail:   video.thumbnail   || '',
+        quality: video.quality || 'STANDARD',
+        status: video.status || 'draft',
+        category: video.category || 'Commercial',
+        duration: video.duration || '',
+        thumbnail: video.thumbnail || '',
+        videoUrl: video.videoUrl || '',
       });
-    } else if (videos.length > 0) {
-      setNotFound(true);
-    }
-  }, [id, videos]);
 
-  const handleChange = e => {
+      setSourceType(video.sourceType || 'upload');
+      setExternalUrl(video.externalUrl || '');
+    }
+  }, [video]);
+
+  useEffect(() => {
+    if (!video && !loading) {
+      loadVideos().catch(console.error);
+    }
+    // Initial load is normally handled by VideoProvider
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(p => ({ ...p, [name]: value }));
-    if (errors[name]) setErrors(p => ({ ...p, [name]: '' }));
+    setForm(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const validate = () => {
-    const e = {};
-    if (!form.title.trim()) e.title = 'Title is required.';
-    return e;
+    const result = {};
+
+    if (!form?.title?.trim()) {
+      result.title = 'Title is required.';
+    }
+
+    if (sourceType !== 'upload') {
+      try {
+        const url = new URL(externalUrl);
+        const host = url.hostname.toLowerCase();
+
+        const allowed = sourceType === 'youtube'
+          ? ['youtube.com', 'www.youtube.com',
+             'm.youtube.com', 'youtu.be']
+          : ['instagram.com', 'www.instagram.com'];
+
+        if (url.protocol !== 'https:' || !allowed.includes(host)) {
+          throw new Error('Invalid URL');
+        }
+      } catch {
+        result.video = 'Please enter a valid video URL.';
+      }
+    }
+
+    return result;
   };
 
-  const submit = async (statusOverride) => {
+  const submit = async (status) => {
+    if (saving || !form) return;
+
     setSaveError(null);
-    const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    const validationErrors = validate();
+
+    if (Object.keys(validationErrors).length) {
+      setErrors(validationErrors);
+      return;
+    }
 
     setSaving(true);
+
     try {
-      const updateData = {
-        ...form,
-        status: statusOverride ?? form.status,
+      const data = {
+        title: form.title.trim(),
+        description: form.description,
+        quality: form.quality,
+        category: form.category,
+        duration: form.duration,
+        status,
+        sourceType,
+        externalUrl: sourceType === 'upload'
+          ? null
+          : externalUrl.trim(),
       };
 
-      // If a new video file was selected, include it
-      if (videoFile) {
-        updateData.videoFile = videoFile;
-        updateData.thumbnail = autoThumb ?? null;
+      if (sourceType === 'upload' && videoFile) {
+        data.videoFile = videoFile;
+        data.thumbnail = autoThumb;
       }
 
-      const { storageError } = await updateVideo(id, updateData);
+      const { storageError } = await updateVideo(id, data);
 
       if (storageError) {
         setSaveError(storageError);
@@ -90,124 +124,163 @@ export default function VideoEdit() {
 
       navigate('/admin/videos');
     } catch (err) {
-      console.error(err);
-      setSaveError(`Unexpected error: ${err.message}`);
+      console.error('Update failed:', err);
+      setSaveError(err.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const isBusy = saving || converting;
+  if (loading && !form) {
+    return <div className="ve-loading">Loading video data...</div>;
+  }
 
-  if (notFound) return (
-    <div className="ve-not-found">
-      <i className="ri-error-warning-line" />
-      <p>Video not found.</p>
-      <button className="btn btn-ghost" onClick={() => navigate('/admin/videos')}>
-        Back to Videos
-      </button>
-    </div>
-  );
+  if (!video && !form) {
+    return (
+      <div className="ve-not-found">
+        <p>Video not found.</p>
+        <button
+          className="btn btn-ghost"
+          onClick={() => navigate('/admin/videos')}
+        >
+          Back to Videos
+        </button>
+      </div>
+    );
+  }
 
-  if (!form) return (
-    <div className="ve-loading">
-      <i className="ri-loader-4-line vc-spin" /> Loading video data…
-    </div>
-  );
+  if (!form) {
+    return <div className="ve-loading">Loading...</div>;
+  }
 
   return (
     <div className="vc-page ve-page">
-
-      {/* Header */}
       <div className="vc-header">
-        <button className="btn btn-ghost vc-back" onClick={() => navigate('/admin/videos')} disabled={isBusy}>
+        <button
+          className="btn btn-ghost vc-back"
+          onClick={() => navigate('/admin/videos')}
+          disabled={saving}
+        >
           <i className="ri-arrow-left-line" /> Back
         </button>
+
         <div className="vc-header-actions">
-          <button className="btn btn-ghost" onClick={() => submit('draft')} disabled={isBusy}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => submit('draft')}
+            disabled={saving}
+          >
             <i className="ri-save-line" /> Save Draft
           </button>
         </div>
       </div>
 
-      {/* Storage / conversion error banner */}
       {saveError && (
         <div className="vc-error-banner" role="alert">
-          <i className="ri-error-warning-line" />
           <span>{saveError}</span>
-          <button className="vc-error-dismiss" onClick={() => setSaveError(null)} aria-label="Dismiss">
-            <i className="ri-close-line" />
-          </button>
         </div>
       )}
 
       <div className="vc-body">
+        <div className="vc-section glass-card ve-preview-section">
+          <h3 className="vc-section-title">Current Video</h3>
 
-        {/* Current video preview — only show if we have a playable URL */}
-        {form.videoUrl && (
-          <div className="vc-section glass-card ve-preview-section">
-            <h3 className="vc-section-title"><i className="ri-eye-line" /> Current Video</h3>
-            <div className="ve-player-wrap">
-              <VideoPlayer src={form.videoUrl} poster={form.thumbnail} title={form.title} />
-            </div>
+          <div className="ve-player-wrap">
+            <VideoPlayer
+              src={
+                sourceType === 'upload'
+                  ? form.videoUrl
+                  : externalUrl
+              }
+              poster={form.thumbnail}
+              title={form.title}
+              sourceType={sourceType}
+            />
           </div>
-        )}
+        </div>
 
-        {/* Replace video */}
         <div className="vc-section glass-card">
           <h3 className="vc-section-title">
-            <i className="ri-upload-2-line" /> Replace Video
-            <span className="ve-optional"> (optional)</span>
+            Replace Video (optional)
           </h3>
+
           <VideoUploadForm
             videoFile={videoFile}
             onFileSelect={setVideoFile}
             onFrameCapture={setAutoThumb}
+            sourceType={sourceType}
+            onSourceTypeChange={setSourceType}
+            externalUrl={externalUrl}
+            onExternalUrlChange={setExternalUrl}
           />
 
-          {/* Show auto-generated frame when a new video is selected */}
+          {errors.video && (
+            <p className="vc-error">{errors.video}</p>
+          )}
+
           {videoFile && autoThumb && (
             <div className="vc-auto-thumb-preview">
               <span className="vc-auto-thumb-label">
-                <i className="ri-magic-line" /> New auto-generated preview frame
+                New preview frame
               </span>
-              <img src={autoThumb} alt="New preview" className="vc-auto-thumb-img" />
+              <img
+                src={autoThumb}
+                alt="New preview"
+                className="vc-auto-thumb-img"
+              />
             </div>
           )}
 
-          {/* Show existing thumbnail when no new video selected */}
           {!videoFile && form.thumbnail && (
             <div className="vc-auto-thumb-preview">
-              <span className="vc-auto-thumb-label" style={{ color: 'var(--text-secondary)' }}>
-                <i className="ri-image-line" /> Current preview frame
+              <span className="vc-auto-thumb-label">
+                Current preview frame
               </span>
-              <img src={form.thumbnail} alt="Current preview" className="vc-auto-thumb-img" />
+              <img
+                src={form.thumbnail}
+                alt="Current preview"
+                className="vc-auto-thumb-img"
+              />
             </div>
           )}
         </div>
 
-        {/* Details */}
         <div className="vc-section glass-card">
-          <h3 className="vc-section-title"><i className="ri-information-line" /> Video Details</h3>
-          <div className="vc-form-grid">
+          <h3 className="vc-section-title">Video Details</h3>
 
+          <div className="vc-form-grid">
             <div className="vc-field vc-field-full">
               <label htmlFor="title">Title *</label>
-              <input id="title" name="title" type="text" placeholder="Enter video title…"
-                value={form.title} onChange={handleChange} className={errors.title ? 'err' : ''} />
-              {errors.title && <span className="vc-error">{errors.title}</span>}
+              <input
+                id="title"
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+              />
+              {errors.title && (
+                <span className="vc-error">{errors.title}</span>
+              )}
             </div>
 
             <div className="vc-field vc-field-full">
               <label htmlFor="description">Description</label>
-              <textarea id="description" name="description" rows={4}
-                placeholder="Describe this video project…"
-                value={form.description} onChange={handleChange} />
+              <textarea
+                id="description"
+                name="description"
+                rows={4}
+                value={form.description}
+                onChange={handleChange}
+              />
             </div>
 
             <div className="vc-field vc-field-full">
               <label htmlFor="quality">Quality / Package</label>
-              <select id="quality" name="quality" value={form.quality} onChange={handleChange}>
+              <select
+                id="quality"
+                name="quality"
+                value={form.quality}
+                onChange={handleChange}
+              >
                 <option value="BASIC">Basic</option>
                 <option value="STANDARD">Standard</option>
                 <option value="PREMIUM">Premium</option>
@@ -215,18 +288,16 @@ export default function VideoEdit() {
             </div>
 
             <div className="vc-field vc-field-full">
-              <button className="btn btn-primary vc-publish-btn" onClick={() => submit('published')} disabled={isBusy}>
-                {converting
-                  ? <><i className="ri-loader-4-line vc-spin" /> Encoding video…</>
-                  : saving
-                    ? <><i className="ri-loader-4-line vc-spin" /> Saving…</>
-                    : <><i className="ri-check-line" /> Save &amp; Publish</>}
+              <button
+                className="btn btn-primary vc-publish-btn"
+                onClick={() => submit('published')}
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Save & Publish'}
               </button>
             </div>
-
           </div>
         </div>
-
       </div>
     </div>
   );

@@ -94,28 +94,47 @@ export default function ThumbnailsManager() {
   };
 
   /* ── Save ── */
-  const handleSave = () => {
-    if (!preview) return;
-    setSaving(true);
-    try {
-      createThumbnail({
-        title:    titleInput.trim() || preview.file.name,
-        dataUri:  preview.dataUri,
-        fileName: preview.file.name,
-        size:     preview.file.size,
-      });
-      clearPreview();
-    } finally {
-      setSaving(false);
-    }
-  };
+
+
+const handleSave = async () => {
+  if (!preview || saving) return;
+
+  setSaving(true);
+
+  try {
+    await createThumbnail({
+      title: titleInput.trim() || preview.file.name,
+      file: preview.file,
+    });
+
+    clearPreview();
+    alert('Thumbnail published successfully!');
+  } catch (error) {
+    console.error('Upload failed:', error);
+    alert('Upload failed: ' + error.message);
+  } finally {
+    setSaving(false);
+  }
+};
+
+
 
   /* ── Delete ── */
-  const handleDelete = (id) => {
-    deleteThumbnail(id);
+
+const handleDelete = async (id) => {
+  try {
+    await deleteThumbnail(id);
     setConfirmId(null);
-    if (lightboxItem?.id === id) setLightboxItem(null);
-  };
+
+    if (lightboxItem?.id === id) {
+      setLightboxItem(null);
+    }
+  } catch (error) {
+    console.error('Delete failed:', error);
+    alert('Delete failed: ' + error.message);
+  }
+};
+
 
   return (
     <div className="tm-page">
